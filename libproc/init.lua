@@ -166,6 +166,7 @@ find = function(state)
 end
 return {
   newUID = newUID,
+  Manager = Manager,
   State = State,
   Thread = Thread,
   runState = runState,

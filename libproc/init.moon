@@ -112,7 +112,7 @@ find = (state) -> (pat) ->
 -- Return all
 {
   :newUID
-  :State, :Thread
+  :Manager, :State, :Thread
   :runState, :haltAll
   :priorityOf, :statusOf
   :setPriority, :enable, :disable, :remove, :find
