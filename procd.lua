@@ -5,10 +5,12 @@ do
 end
 local libproc = require("libproc")
 local echo = kdprint("procd")
-local State, Thread
-State, Thread = libproc.State, libproc.Thread
+local Manager, State, Thread
+Manager, State, Thread = libproc.Manager, libproc.State, libproc.Thread
+echo("creating global (world) manager")
+PROC_MGR = Manager("world")
 echo("creating PROC_MAIN state")
-PROC_MAIN = State("PROC_MAIN", 1)
+PROC_MAIN = State(PROC_MGR, "PROC_MAIN", 1)
 local newThread = Thread(PROC_MAIN)
 local selectl
 selectl = function(n, ...)

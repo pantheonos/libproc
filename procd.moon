@@ -7,9 +7,11 @@ libproc = require "libproc"
 echo    = kdprint "procd"
 
 -- Create PROC_MAIN State
-import State, Thread from libproc
+import Manager, State, Thread from libproc
+echo "creating global (world) manager"
+export PROC_MGR  = Manager "world"
 echo "creating PROC_MAIN state"
-export PROC_MAIN = State "PROC_MAIN", 1
+export PROC_MAIN = State PROC_MGR, "PROC_MAIN", 1
 newThread        = Thread PROC_MAIN
 
 -- Select utility

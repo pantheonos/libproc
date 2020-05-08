@@ -9,30 +9,46 @@ newUID = ->
   _uid += 1
   _uid
 
--- A State is a collection of Threads
-State = (name, priority=0) ->
+-- A Manager is a collection of States
+Manager = (name) ->
   expect 1, name, {"string"}, "State"
-  expect 2, priority, {"number"}, "State"
+  --
+  this = typeset {
+    instance: raisin.manager os.pullEvent
+    states:   {}
+    :name
+  }, "Manager"
+  return this
+
+-- A State is a collection of Threads
+State = (name, priority=0) =>
+  expect 0, @,        {"Manager"}, "State"
+  expect 1, name,     {"string"},  "State"
+  expect 2, priority, {"number"},  "State"
   -- Create object
   this = typeset {
-    instance: raisin.group priority
+    manager:  @
+    instance: @group priority
     threads:  {}
     :name
   }, "State"
+  -- Register object
+  @states[name] = this
+  -- Return
   return this
 
 -- A Thread is an object that contains a raisin thread
 Thread = (state) -> (fn, priority=0, uid=newUID!) ->
-  expect 1, state, {"State"}, "Thread"
-  expect 2, fn, {"function"}, "Thread"
-  expect 3, priority, {"number"}, "Thread"
-  expect 4, uid, {"number"}, "Thread"
+  expect 1, state,    {"State"},    "Thread"
+  expect 2, fn,       {"function"}, "Thread"
+  expect 3, priority, {"number"},   "Thread"
+  expect 4, uid,      {"number"},   "Thread"
   -- Check that the UID was not previously registered
   if state.threads[uid]
-    error "#{state.name}/#{uid} already exists."
+    error "#{state.manager.name}:#{state.name}/#{uid} already exists."
   -- Create object
   this = typeset {
-    instance: raisin.thread fn, priority, state.instance
+    instance: state.manager.thread fn, priority, state.instance
     :fn
     :priority
     :uid
@@ -45,10 +61,12 @@ Thread = (state) -> (fn, priority=0, uid=newUID!) ->
 -- Runs all threads in a State
 runState = (state) ->
   expect 1, state, {"State"}, "runState"
-  raisin.manager.runGroup state.instance
+  state.manager.runGroup state.instance
 
 -- Halts all management
-haltAll = raisin.manager.halt
+haltAll = (state) ->
+  expect 1, state, {"State"}, "haltAll"
+  state.manager.halt!
 
 -- Gets the status of a Thread or State
 statusOf = (any) ->
@@ -72,8 +90,8 @@ priorityOf = (any) ->
 
 -- Sets the priority of a Thread or State
 setPriority = (any) -> (priority=0) ->
-  expect 1, any, {"Thread", "State"}, "setPriority"
-  expect 2, priority, {"number"}, "setPriority"
+  expect 1, any,      {"Thread", "State"}, "setPriority"
+  expect 2, priority, {"number"},          "setPriority"
   return any.instance\setPriority priority
 
 -- Removes the Thread or State from memory.

@@ -5,11 +5,26 @@ newUID = function()
   _uid = _uid + 1
   return _uid
 end
+local Manager
+Manager = function(name)
+  expect(1, name, {
+    "string"
+  }, "State")
+  local this = typeset({
+    instance = raisin.manager(os.pullEvent),
+    states = { },
+    name = name
+  }, "Manager")
+  return this
+end
 local State
-State = function(name, priority)
+State = function(self, name, priority)
   if priority == nil then
     priority = 0
   end
+  expect(0, self, {
+    "Manager"
+  }, "State")
   expect(1, name, {
     "string"
   }, "State")
@@ -17,10 +32,12 @@ State = function(name, priority)
     "number"
   }, "State")
   local this = typeset({
-    instance = raisin.group(priority),
+    manager = self,
+    instance = self:group(priority),
     threads = { },
     name = name
   }, "State")
+  self.states[name] = this
   return this
 end
 local Thread
@@ -45,10 +62,10 @@ Thread = function(state)
       "number"
     }, "Thread")
     if state.threads[uid] then
-      error(tostring(state.name) .. "/" .. tostring(uid) .. " already exists.")
+      error(tostring(state.manager.name) .. ":" .. tostring(state.name) .. "/" .. tostring(uid) .. " already exists.")
     end
     local this = typeset({
-      instance = raisin.thread(fn, priority, state.instance),
+      instance = state.manager.thread(fn, priority, state.instance),
       fn = fn,
       priority = priority,
       uid = uid
@@ -62,9 +79,15 @@ runState = function(state)
   expect(1, state, {
     "State"
   }, "runState")
-  return raisin.manager.runGroup(state.instance)
+  return state.manager.runGroup(state.instance)
 end
-local haltAll = raisin.manager.halt
+local haltAll
+haltAll = function(state)
+  expect(1, state, {
+    "State"
+  }, "haltAll")
+  return state.manager.halt()
+end
 local statusOf
 statusOf = function(any)
   expect(1, any, {
